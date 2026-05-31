@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>云端情绪手账</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<!-- 欢迎弹窗（点击后播放背景音乐并进入） -->
+<div class="welcome-overlay" id="welcomeOverlay">
+  <div class="welcome-cloud">☁️</div>
+  <div class="welcome-title">云端情绪手账</div>
+  <div class="welcome-sub">把心事藏进云朵，与温柔不期而遇</div>
+  <button class="btn" id="welcomeBtn">进入云端</button>
+</div>
+
+<!-- 全局背景音乐开关 -->
+<button class="bg-music-btn" id="bgMusicBtn" title="背景音乐">🎵</button>
+
+<!-- 左侧抽一片云按钮 -->
+<button class="draw-cloud-btn" id="drawCloudBtn" title="抽一片云">☁ 抽一片云</button>
+
+<div class="wrap-main enter-anim">
+  <!-- 多层云层背景 -->
+  <div class="cloud-bg" id="cloudBox"></div>
+  <!-- 多种粒子容器 -->
+  <div id="particleBox"></div>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>云端情绪手账</h1>
+      <p>把心事藏进云朵，与温柔不期而遇</p>
+    </div>
+
+    <!-- 5个手账页面 -->
+    <div class="note-paper active" data-page="home">
+      <h2>云扉首页 · 散落的情绪信纸</h2>
+      <p class="note-desc">云朵之间漂浮着无数陌生人的心事，写下你的心情，让文字随云缓缓飘荡；也可以随机拾取他人的手账，安静共情每一份情绪。</p>
+      <button class="btn" id="btnWrite">写下今日心情</button>
+      <div class="home-cloudwall-link" style="margin-top:18px;text-align:center;">
+        <button class="btn-outline" id="goCloudWall" style="font-size:15px;">🕊️ 进入匿名云絮墙</button>
+      </div>
+    </div>
+
+    <!-- 匿名云絮互动 -->
+    <div class="note-paper" data-page="cloudwall">
+      <h2>匿名云絮 · 飘在风中的悄悄话</h2>
+      <p class="note-desc">匿名写下一句心事、一个愿望、一段碎碎念，让它变成云絮飘在空中。没有人知道你是谁，但会有人懂你。可以给喜欢的云絮点赞，也可以留下温暖的回复。</p>
+      <div id="cloudWallContent"></div>
+      <button class="btn" id="btnCloudPost" style="margin-top:18px;">✍️ 发布一条云絮</button>
+    </div>
+
+    <div class="note-paper" data-page="pick">
+      <h2>拾云之页 · 翻阅他人手账</h2>
+      <p class="note-desc">按照开心、迷茫、治愈、孤独等情绪标签筛选云端信纸，阅读陌生人藏在纸页里的温柔，遇见同频的灵魂。</p>
+      <button class="btn" id="btnPick">随机拾取一封手账</button>
+    </div>
+
+    <div class="note-paper" data-page="mine">
+      <h2>我的手账 · 私人情绪记录本</h2>
+      <p class="note-desc">收纳你发布、收藏、保存草稿的全部手账，留存每一段喜怒哀乐，记录独属于你的情绪时光。</p>
+      <button class="btn" id="btnMine">查看我的草稿</button>
+    </div>
+
+    <div class="note-paper" data-page="relax">
+      <h2>静心小筑 · 治愈放松专区</h2>
+      <p class="note-desc">云端轻音乐、温柔治愈短句、光点解压小游戏，当内心烦躁时，来这里卸下所有疲惫。</p>
+      <button class="btn" id="btnRelax">播放云端轻音乐</button>
+    </div>
+
+    <div class="note-paper" data-page="achievement">
+      <h2>云途图鉴 · 情绪成长成就</h2>
+      <p class="note-desc">左边查看情绪书写日历，右边解锁成就徽章，见证内心慢慢变得柔软强大。</p>
+      <button class="btn" id="btnAch">查看全部成就</button>
+    </div>
+  </div>
+
+  <!-- 底部导航栏 -->
+  <div class="nav-bar">
+    <div class="nav-item active" data-target="home">云扉首页</div>
+    <div class="nav-item" data-target="cloudwall">云絮墙</div>
+    <div class="nav-item" data-target="pick">拾云之页</div>
+    <div class="nav-item" data-target="mine">我的手账</div>
+    <div class="nav-item" data-target="relax">静心小筑</div>
+    <div class="nav-item" data-target="achievement">云途图鉴</div>
+  </div>
+
+  <!-- 右下角云精灵AI -->
+  <div class="ai-sprite" id="sprite">☁</div>
+  <div class="ai-panel" id="aiPanel">
+    <div class="ai-panel-header">
+      <div class="sprite-avatar">☁</div>
+      <div class="sprite-info">
+        <h3>云精灵</h3>
+        <p>你的情绪陪伴伙伴</p>
+      </div>
+      <div class="close-ai" id="closeAi">✕</div>
+    </div>
+    <div class="ai-panel-body">
+      <div class="ai-quick-actions" id="aiQuickActions">
+        <div class="ai-quick-btn" data-msg="今天心情不太好">😔 心情不好</div>
+        <div class="ai-quick-btn" data-msg="我好开心！">😄 好开心</div>
+        <div class="ai-quick-btn" data-msg="觉得好孤独">🌙 好孤独</div>
+        <div class="ai-quick-btn" data-msg="好迷茫不知道怎么办">😶 迷茫中</div>
+        <div class="ai-quick-btn" data-msg="帮我润色一段手账文字">✍️ 润色文字</div>
+        <div class="ai-quick-btn" data-msg="给我一句治愈的话">💫 治愈我</div>
+      </div>
+      <!-- 昼夜模式切换 -->
+      <div class="theme-switch-row" id="themeSwitchRow">
+        <span class="theme-switch-label">🌅 昼夜模式</span>
+        <div class="theme-switch-track" id="themeSwitchTrack">
+          <div class="theme-switch-options">
+            <div class="theme-opt active" data-theme="auto">自动</div>
+            <div class="theme-opt" data-theme="morning">清晨</div>
+            <div class="theme-opt" data-theme="afternoon">午后</div>
+            <div class="theme-opt" data-theme="dusk">黄昏</div>
+            <div class="theme-opt" data-theme="night">深夜</div>
+          </div>
+        </div>
+      </div>
+      <div class="ai-messages" id="aiMessages"></div>
+      <div class="ai-input-row">
+        <textarea id="aiInput" placeholder="和云精灵说说话…"></textarea>
+        <button class="btn" id="aiSendBtn">发送</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -167,18 +167,96 @@
     bgMusicPlaying ? stopBgMusic() : startBgMusic();
   }
 
-  // 欢迎弹窗
+  // 欢迎弹窗 + 沉浸式入场
   const welcomeOverlay = $('#welcomeOverlay');
   const welcomeBtn = $('#welcomeBtn');
   const bgMusicBtn = $('#bgMusicBtn');
+  const welcomeTitle = $('#welcomeTitle');
+  const welcomeSub = $('#welcomeSub');
+  const welcomeStars = $('#welcomeStars');
 
+  // 欢迎页显示时禁止页面滚动
+  document.body.classList.add('welcome-active');
+
+  // 生成星空
+  if (welcomeStars) {
+    for (let i = 0; i < 40; i++) {
+      const star = document.createElement('div');
+      star.className = 'w-star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = (Math.random() * 3) + 's';
+      star.style.animationDuration = (2 + Math.random() * 2) + 's';
+      star.style.width = star.style.height = (2 + Math.random() * 3) + 'px';
+      welcomeStars.appendChild(star);
+    }
+  }
+
+  // 逐字显示标题和副标题
+  const titleText = '云端情绪手账';
+  const subText = '把心事藏进云朵，与温柔不期而遇';
+  let titleIdx = 0, subIdx = 0;
+
+  function typeTitle() {
+    if (titleIdx <= titleText.length) {
+      welcomeTitle.textContent = titleText.slice(0, titleIdx);
+      titleIdx++;
+      setTimeout(typeTitle, 120);
+    } else {
+      setTimeout(typeSub, 300);
+    }
+  }
+  function typeSub() {
+    if (subIdx <= subText.length) {
+      welcomeSub.textContent = subText.slice(0, subIdx);
+      subIdx++;
+      setTimeout(typeSub, 60);
+    } else {
+      // 显示按钮
+      welcomeBtn.classList.add('show');
+    }
+  }
+  // 启动打字
+  setTimeout(typeTitle, 800);
+
+  // 点击进入 - 沉浸式过渡
   welcomeBtn.addEventListener('click', () => {
-    // 淡出欢迎弹窗
+    welcomeBtn.style.pointerEvents = 'none';
     welcomeOverlay.classList.add('fade-out');
-    setTimeout(() => welcomeOverlay.style.display = 'none', 800);
+
+    // 启动过渡裂开动画
+    const transOverlay = $('#transitionOverlay');
+    if (transOverlay) {
+      transOverlay.classList.add('active');
+    }
+
+    setTimeout(() => {
+      welcomeOverlay.style.display = 'none';
+      document.body.classList.remove('welcome-active');
+      // 首页元素逐个入场
+      triggerHomeEntrance();
+    }, 800);
+
+    // 过渡动画结束后移除遮罩
+    setTimeout(() => {
+      if (transOverlay) transOverlay.classList.add('done');
+      setTimeout(() => { if (transOverlay) transOverlay.style.display = 'none'; }, 600);
+    }, 1600);
+
     // 自动播放背景音乐
     startBgMusic();
   });
+
+  // 首页元素逐个入场动画
+  function triggerHomeEntrance() {
+    const homePage = $('[data-page="home"]');
+    if (!homePage) return;
+    const sections = homePage.querySelectorAll('.home-mood-weather, .home-shortcuts, .home-stats, .home-recent, .home-featured');
+    sections.forEach((el, i) => {
+      el.classList.add('section-enter');
+      el.style.animationDelay = (i * 0.15) + 's';
+    });
+  }
 
   // 右上角音乐开关
   bgMusicBtn.addEventListener('click', toggleBgMusic);
@@ -886,6 +964,7 @@
     const totalReplies = allFluffs.reduce((s, f) => s + (f.replies?.length || 0), 0);
 
     content.innerHTML = `
+      <div class="cloudwall-badge">🔒 匿名发布 · 短句碎碎念 · 点赞回复</div>
       <div class="cloudwall-stats">
         <div class="cw-stat"><div class="cw-num">${allFluffs.length}</div><div class="cw-label">云絮数</div></div>
         <div class="cw-stat"><div class="cw-num">${totalLikes}</div><div class="cw-label">暖心点赞</div></div>
@@ -1133,16 +1212,21 @@
     const pool = pickFilter === 'all' ? PRESET_JOURNALS : PRESET_JOURNALS.filter(j => j.mood === pickFilter);
 
     content.innerHTML = `
+      <div class="pick-intro">
+        <div class="pick-intro-icon">✉️</div>
+        <div class="pick-intro-text">云端飘来陌生人的信，拆开看看吧</div>
+      </div>
       <div class="filter-bar">
         <div class="filter-tag ${pickFilter === 'all' ? 'active' : ''}" data-filter="all">全部</div>
         ${MOODS.map(m => `<div class="filter-tag ${pickFilter === m.key ? 'active' : ''}" data-filter="${m.key}">${m.icon} ${m.label}</div>`).join('')}
       </div>
-      ${currentPicked ? `<div class="scroll-area" style="margin-bottom:16px;">${renderCardHTML(currentPicked, true)}</div>` : ''}
-      <div class="home-section-title">云端信纸</div>
-      <div class="card-list scroll-area">
+      ${currentPicked ? `<div class="pick-result scroll-area" style="margin-bottom:20px;">${renderLetterHTML(currentPicked)}</div>` : '<div class="pick-result"></div>'}
+      <div class="home-section-title" style="margin-bottom:4px;">云中信箱</div>
+      <p style="color:#999;font-size:13px;margin-bottom:14px;">每一封都是陌生人的真实心声</p>
+      <div class="letter-list scroll-area">
         ${pool.length === 0 ?
-          '<div class="empty-state"><div class="empty-icon">☁️</div>该分类暂无手账</div>' :
-          pool.map(j => renderCardHTML(j, true)).join('')
+          '<div class="empty-state"><div class="empty-icon">📭</div>这个分类的信箱暂时空空的</div>' :
+          pool.map(j => renderEnvelopeHTML(j)).join('')
         }
       </div>
     `;
@@ -1156,18 +1240,97 @@
       });
     });
 
-    bindCardActions(content);
+    // 信封点击拆信事件
+    $$('.envelope-item', content).forEach(env => {
+      env.addEventListener('click', () => {
+        const id = env.getAttribute('data-id');
+        const journal = PRESET_JOURNALS.find(j => j.id === id);
+        if (!journal) return;
+        env.classList.add('envelope-opening');
+        setTimeout(() => {
+          currentPicked = journal;
+          const stats = getStats();
+          stats.totalPicked = (stats.totalPicked || 0) + 1;
+          Store.set('stats', stats);
+          renderPickPage();
+          checkAchievements();
+        }, 600);
+      });
+    });
+
+    // 信纸收藏按钮
+    const collectBtn = content.querySelector('.letter-collect-btn');
+    if (collectBtn) {
+      collectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = collectBtn.getAttribute('data-id');
+        // 收藏到我的手账
+        const journal = PRESET_JOURNALS.find(j => j.id === id);
+        if (journal) {
+          const journals = Store.get('journals', []);
+          if (!journals.find(j => j.id === journal.id)) {
+            journals.push({ ...journal, status: 'published', favorited: true });
+            Store.set('journals', journals);
+          }
+          const stats = getStats();
+          stats.totalFavorited = journals.filter(j => j.favorited).length;
+          Store.set('stats', stats);
+          collectBtn.textContent = '♥ 已收藏';
+          collectBtn.style.color = '#c06090';
+          showToast('已收藏这封信 💜');
+          checkAchievements();
+        }
+      });
+    }
+  }
+
+  // 渲染信封样式（未拆开）
+  function renderEnvelopeHTML(journal) {
+    const mood = MOODS.find(m => m.key === journal.mood);
+    const moodIcon = mood ? mood.icon : '☁️';
+    const moodLabel = mood ? mood.label : '';
+    return `<div class="envelope-item" data-id="${journal.id}">
+      <div class="envelope-flap"></div>
+      <div class="envelope-body">
+        <div class="envelope-seal">${moodIcon}</div>
+        <div class="envelope-info">
+          <div class="envelope-from">来自：${journal.author || '匿名'}</div>
+          <div class="envelope-mood">${moodLabel}的信</div>
+        </div>
+        <div class="envelope-hint">点击拆信 ✉️</div>
+      </div>
+    </div>`;
+  }
+
+  // 渲染拆开的信纸
+  function renderLetterHTML(journal) {
+    const mood = MOODS.find(m => m.key === journal.mood);
+    const moodLabel = mood ? `${mood.icon} ${mood.label}` : journal.mood;
+    const moodCls = mood ? mood.cls : '';
+    return `<div class="letter-paper">
+      <div class="letter-deco">✉️</div>
+      <div class="letter-mood ${moodCls}">${moodLabel}</div>
+      <div class="letter-text">${journal.text}</div>
+      <div class="letter-footer">
+        <span class="letter-author">—— ${journal.author || '匿名'}</span>
+        <span class="letter-time">${fmtTime(journal.time)}</span>
+      </div>
+      <button class="letter-collect-btn" data-action="fav" data-id="${journal.id}">♡ 收藏这封信</button>
+    </div>`;
   }
 
   // 随机拾取
   function pickRandom() {
     const pool = pickFilter === 'all' ? PRESET_JOURNALS : PRESET_JOURNALS.filter(j => j.mood === pickFilter);
-    if (pool.length === 0) { showToast('该分类暂无手账～'); return; }
+    if (pool.length === 0) { showToast('该分类暂无信件～'); return; }
 
     // 播放拾取动画
-    const resultBox = $('#pickResult');
-    if (resultBox) {
-      resultBox.innerHTML = '<div class="pick-animation"><div class="cloud-anim">☁️</div></div>';
+    const content = $('#pickContent');
+    if (content) {
+      const existingResult = content.querySelector('.pick-result');
+      if (existingResult) {
+        existingResult.innerHTML = '<div class="pick-animation"><div class="cloud-anim">✉️</div><div style="text-align:center;color:#999;font-size:13px;margin-top:10px;">云端信使正在送信…</div></div>';
+      }
     }
 
     setTimeout(() => {
@@ -1177,14 +1340,14 @@
       stats.totalPicked = (stats.totalPicked || 0) + 1;
       Store.set('stats', stats);
 
-      if (resultBox) {
-        resultBox.innerHTML = renderCardHTML(currentPicked, true);
-      }
+      // 重新渲染页面，顶部展示拾取结果
+      renderPickPage();
       checkAchievements();
+      showToast('收到一封远方来信 ✉️');
     }, 1200);
   }
 
-  const pickBtn = $('[data-page="pick"] .btn');
+  const pickBtn = $('#btnPick');
   if (pickBtn) pickBtn.addEventListener('click', pickRandom);
 
   /* ============ 页面3：我的手账 ============ */
@@ -1248,6 +1411,25 @@
   let healQuoteIdx = 0;
   let relaxInited = false;
 
+  // 呼吸引导状态
+  let breathActive = false;
+  let breathPhase = 'idle'; // idle | inhale | hold | exhale
+  let breathTimer = null;
+  let breathCycle = 0;
+  const BREATH_MODES = [
+    { name: '4-7-8 放松呼吸', inhale: 4, hold: 7, exhale: 8, desc: '经典的放松助眠呼吸法' },
+    { name: '4-4 箱式呼吸', inhale: 4, hold: 4, exhale: 4, holdAfter: 4, desc: '均匀节奏，稳定情绪' },
+    { name: '5-5 平衡呼吸', inhale: 5, hold: 0, exhale: 5, desc: '简单节奏，随时随地放松' },
+  ];
+  let currentBreathMode = 0;
+
+  // 涂鸦画板状态
+  let doodleCtx = null;
+  let doodleDrawing = false;
+  let doodleColor = '#705eb5';
+  let doodleSize = 4;
+  let doodleHistory = [];
+
   const MUSIC_TRACKS = [
     { name: '☁️ 云端漫步', freq: [262, 330, 392, 330, 294, 349, 440, 349, 392, 330, 262, 294], chords: [[131,196],[131,196],[147,220],[131,196],[131,196],[147,220],[131,196],[147,220],[131,196],[131,196],[110,165],[131,196]] },
     { name: '🌧️ 细雨轻吟', freq: [330, 392, 440, 523, 440, 392, 330, 294, 330, 392, 440, 392], chords: [[165,220],[165,220],[147,196],[131,196],[147,196],[165,220],[165,220],[147,196],[165,220],[165,220],[147,196],[165,220]] },
@@ -1306,6 +1488,54 @@
         <button class="btn" style="margin-top:16px;padding:10px 22px;font-size:14px" id="nextQuote">换一句 ✨</button>
       </div>
 
+      <!-- 呼吸引导 -->
+      <div class="relax-section breath-section">
+        <div class="relax-section-title">🌬️ 呼吸引导</div>
+        <div class="breath-mode-bar">
+          ${BREATH_MODES.map((m, i) => `<div class="breath-mode-tag ${i === currentBreathMode ? 'active' : ''}" data-bmode="${i}">${m.name}</div>`).join('')}
+        </div>
+        <div class="breath-mode-desc" id="breathModeDesc">${BREATH_MODES[0].desc}</div>
+        <div class="breath-circle-wrap">
+          <div class="breath-circle" id="breathCircle">
+            <div class="breath-inner">
+              <div class="breath-phase-text" id="breathPhaseText">准备开始</div>
+              <div class="breath-counter" id="breathCounter"></div>
+            </div>
+          </div>
+        </div>
+        <div class="breath-info" id="breathInfo">已完成 0 个循环</div>
+        <div class="breath-controls">
+          <button class="btn" id="breathStartBtn" style="padding:10px 28px;font-size:14px;">开始呼吸</button>
+          <button class="btn-outline breath-stop-btn" id="breathStopBtn" style="padding:10px 20px;font-size:13px;display:none;">停止</button>
+        </div>
+      </div>
+
+      <!-- 涂鸦画板 -->
+      <div class="relax-section doodle-section">
+        <div class="relax-section-title">🎨 涂鸦画板</div>
+        <p class="doodle-hint">随手涂鸦，释放内心的色彩</p>
+        <div class="doodle-toolbar">
+          <div class="doodle-colors" id="doodleColors">
+            ${['#705eb5','#e06080','#f0a050','#50b880','#4090d0','#d060c0','#888','#333'].map(c =>
+              `<div class="doodle-color ${c === doodleColor ? 'active' : ''}" data-color="${c}" style="background:${c}"></div>`
+            ).join('')}
+          </div>
+          <div class="doodle-sizes" id="doodleSizes">
+            ${[2, 4, 8, 14].map(s =>
+              `<div class="doodle-size ${s === doodleSize ? 'active' : ''}" data-size="${s}"><span style="width:${Math.max(6, s * 2)}px;height:${Math.max(6, s * 2)}px;border-radius:50%;background:#705eb5;display:block"></span></div>`
+            ).join('')}
+          </div>
+          <div class="doodle-actions">
+            <button class="btn-outline doodle-act-btn" id="doodleUndo" title="撤销">↩ 撤销</button>
+            <button class="btn-outline doodle-act-btn" id="doodleClear" title="清空">🗑 清空</button>
+            <button class="btn doodle-act-btn" id="doodleSave" title="保存到我的手账">💾 保存</button>
+          </div>
+        </div>
+        <div class="doodle-canvas-wrap">
+          <canvas class="doodle-canvas" id="doodleCanvas"></canvas>
+        </div>
+      </div>
+
       <div class="bubble-game">
         <div class="game-header">
           <span style="color:#634faa;font-size:16px;font-weight:500">🫧 解压泡泡</span>
@@ -1339,6 +1569,246 @@
       } else {
         startBubbleGame();
       }
+    });
+
+    // ===== 呼吸引导事件 =====
+    $$('.breath-mode-tag', content).forEach(tag => {
+      tag.addEventListener('click', () => {
+        if (breathActive) return;
+        currentBreathMode = parseInt(tag.getAttribute('data-bmode'));
+        $$('.breath-mode-tag', content).forEach(t => t.classList.remove('active'));
+        tag.classList.add('active');
+        const desc = $('#breathModeDesc', content);
+        if (desc) desc.textContent = BREATH_MODES[currentBreathMode].desc;
+      });
+    });
+
+    $('#breathStartBtn', content)?.addEventListener('click', startBreathing);
+    $('#breathStopBtn', content)?.addEventListener('click', stopBreathing);
+
+    // ===== 涂鸦画板事件 =====
+    initDoodleCanvas();
+  }
+
+  /* ===== 呼吸引导逻辑 ===== */
+  function startBreathing() {
+    if (breathActive) return;
+    breathActive = true;
+    breathCycle = 0;
+    breathPhase = 'idle';
+
+    const startBtn = $('#breathStartBtn');
+    const stopBtn = $('#breathStopBtn');
+    if (startBtn) startBtn.style.display = 'none';
+    if (stopBtn) stopBtn.style.display = '';
+
+    runBreathPhase('inhale');
+  }
+
+  function stopBreathing() {
+    breathActive = false;
+    breathPhase = 'idle';
+    clearTimeout(breathTimer);
+
+    const circle = $('#breathCircle');
+    const phaseText = $('#breathPhaseText');
+    const counter = $('#breathCounter');
+    const startBtn = $('#breathStartBtn');
+    const stopBtn = $('#breathStopBtn');
+    if (circle) { circle.classList.remove('inhale', 'hold', 'exhale'); circle.classList.add('idle'); }
+    if (phaseText) phaseText.textContent = '准备开始';
+    if (counter) counter.textContent = '';
+    if (startBtn) startBtn.style.display = '';
+    if (stopBtn) stopBtn.style.display = 'none';
+  }
+
+  function runBreathPhase(phase) {
+    if (!breathActive) return;
+    breathPhase = phase;
+
+    const mode = BREATH_MODES[currentBreathMode];
+    const circle = $('#breathCircle');
+    const phaseText = $('#breathPhaseText');
+    const counter = $('#breathCounter');
+    const info = $('#breathInfo');
+
+    // 更新圆环样式
+    if (circle) { circle.classList.remove('inhale', 'hold', 'exhale', 'idle'); circle.classList.add(phase); }
+
+    let duration = 0;
+    let phaseLabel = '';
+    let nextPhase = '';
+
+    switch (phase) {
+      case 'inhale':
+        duration = mode.inhale;
+        phaseLabel = '缓缓吸气';
+        nextPhase = mode.hold > 0 ? 'hold' : 'exhale';
+        break;
+      case 'hold':
+        duration = mode.hold;
+        phaseLabel = '屏住呼吸';
+        nextPhase = 'exhale';
+        break;
+      case 'exhale':
+        duration = mode.exhale;
+        phaseLabel = '慢慢呼气';
+        nextPhase = mode.holdAfter ? 'holdAfter' : 'inhale';
+        break;
+      case 'holdAfter':
+        duration = mode.holdAfter || 0;
+        phaseLabel = '轻轻屏息';
+        nextPhase = 'inhale';
+        break;
+    }
+
+    if (phaseText) phaseText.textContent = phaseLabel;
+
+    // 倒计时
+    let remaining = duration;
+    if (counter) counter.textContent = remaining + 's';
+    const countInterval = setInterval(() => {
+      remaining--;
+      if (remaining <= 0 || !breathActive) {
+        clearInterval(countInterval);
+        if (counter) counter.textContent = '';
+        return;
+      }
+      if (counter) counter.textContent = remaining + 's';
+    }, 1000);
+
+    breathTimer = setTimeout(() => {
+      clearInterval(countInterval);
+      if (!breathActive) return;
+      if (phase === 'exhale' || phase === 'holdAfter') {
+        breathCycle++;
+        if (info) info.textContent = `已完成 ${breathCycle} 个循环`;
+      }
+      runBreathPhase(nextPhase);
+    }, duration * 1000);
+  }
+
+  /* ===== 涂鸦画板逻辑 ===== */
+  function initDoodleCanvas() {
+    const canvas = $('#doodleCanvas');
+    if (!canvas) return;
+    const wrap = canvas.parentElement;
+    canvas.width = wrap.clientWidth || 600;
+    canvas.height = 360;
+    doodleCtx = canvas.getContext('2d');
+    doodleCtx.fillStyle = '#fefaff';
+    doodleCtx.fillRect(0, 0, canvas.width, canvas.height);
+    doodleCtx.lineCap = 'round';
+    doodleCtx.lineJoin = 'round';
+    doodleHistory = [doodleCtx.getImageData(0, 0, canvas.width, canvas.height)];
+
+    // 鼠标/触摸事件
+    let lastPos = null;
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      // 修正 canvas 内部分辨率与 CSS 显示尺寸的缩放
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    };
+
+    const startDraw = (e) => {
+      e.preventDefault();
+      doodleDrawing = true;
+      const pos = getPos(e);
+      lastPos = pos;
+      doodleCtx.strokeStyle = doodleColor;
+      doodleCtx.lineWidth = doodleSize;
+      // 画一个点，确保单击也有反馈
+      doodleCtx.beginPath();
+      doodleCtx.arc(pos.x, pos.y, doodleSize / 2, 0, Math.PI * 2);
+      doodleCtx.fillStyle = doodleColor;
+      doodleCtx.fill();
+    };
+    const draw = (e) => {
+      if (!doodleDrawing) return;
+      e.preventDefault();
+      const pos = getPos(e);
+      // 逐段绘制，避免重复描边导致越画越粗
+      doodleCtx.strokeStyle = doodleColor;
+      doodleCtx.lineWidth = doodleSize;
+      doodleCtx.beginPath();
+      doodleCtx.moveTo(lastPos.x, lastPos.y);
+      doodleCtx.lineTo(pos.x, pos.y);
+      doodleCtx.stroke();
+      lastPos = pos;
+    };
+    const endDraw = () => {
+      if (!doodleDrawing) return;
+      doodleDrawing = false;
+      lastPos = null;
+      // 保存历史
+      doodleHistory.push(doodleCtx.getImageData(0, 0, canvas.width, canvas.height));
+      if (doodleHistory.length > 30) doodleHistory.shift();
+    };
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseleave', endDraw);
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', endDraw);
+
+    // 颜色选择
+    $$('.doodle-color').forEach(el => {
+      el.addEventListener('click', () => {
+        doodleColor = el.getAttribute('data-color');
+        $$('.doodle-color').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+      });
+    });
+
+    // 画笔大小
+    $$('.doodle-size').forEach(el => {
+      el.addEventListener('click', () => {
+        doodleSize = parseInt(el.getAttribute('data-size'));
+        $$('.doodle-size').forEach(s => s.classList.remove('active'));
+        el.classList.add('active');
+      });
+    });
+
+    // 撤销
+    $('#doodleUndo')?.addEventListener('click', () => {
+      if (doodleHistory.length <= 1) return;
+      doodleHistory.pop();
+      const prev = doodleHistory[doodleHistory.length - 1];
+      doodleCtx.putImageData(prev, 0, 0);
+    });
+
+    // 清空
+    $('#doodleClear')?.addEventListener('click', () => {
+      doodleCtx.fillStyle = '#fefaff';
+      doodleCtx.fillRect(0, 0, canvas.width, canvas.height);
+      doodleHistory = [doodleCtx.getImageData(0, 0, canvas.width, canvas.height)];
+      showToast('画板已清空');
+    });
+
+    // 保存到我的手账
+    $('#doodleSave')?.addEventListener('click', () => {
+      const dataURL = canvas.toDataURL('image/png');
+      const journals = Store.get('journals', []);
+      journals.push({
+        id: genId(),
+        mood: 'calm',
+        text: '🎨 涂鸦创作',
+        time: new Date().toISOString(),
+        status: 'published',
+        image: dataURL,
+      });
+      Store.set('journals', journals);
+      const stats = getStats();
+      stats.totalPublished = journals.filter(j => j.status === 'published').length;
+      Store.set('stats', stats);
+      showToast('涂鸦已保存到我的手账 🎨');
+      checkAchievements();
     });
   }
 
@@ -1538,15 +2008,141 @@
     // 统计数据
     const moodTypes = new Set(journals.map(j => j.mood)).size;
     const streak = calcStreak(journals);
+    const published = journals.filter(j => j.status === 'published');
+
+    // 情绪分布统计
+    const moodCounts = {};
+    MOODS.forEach(m => { moodCounts[m.key] = 0; });
+    published.forEach(j => { if (moodCounts[j.mood] !== undefined) moodCounts[j.mood]++; });
+    const maxMoodCount = Math.max(1, ...Object.values(moodCounts));
+    const topMood = MOODS.reduce((a, b) => moodCounts[a.key] >= moodCounts[b.key] ? a : b, MOODS[0]);
+
+    // 最近7天情绪趋势
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dayJournals = published.filter(j => {
+        const jd = new Date(j.time);
+        return `${jd.getFullYear()}-${String(jd.getMonth() + 1).padStart(2, '0')}-${String(jd.getDate()).padStart(2, '0')}` === dateStr;
+      });
+      last7Days.push({
+        label: ['日', '一', '二', '三', '四', '五', '六'][d.getDay()],
+        count: dayJournals.length,
+        mood: dayJournals.length > 0 ? dayJournals[0].mood : null,
+      });
+    }
+    const maxDayCount = Math.max(1, ...last7Days.map(d => d.count));
+
+    // 成就进度
+    const totalAchievements = ACHIEVEMENTS.length;
+    const unlockedCount = unlockedIds.length;
+    const achPercent = Math.round((unlockedCount / totalAchievements) * 100);
+
+    // 里程碑时间线（最近的关键事件）
+    const milestones = [];
+    published.slice(-5).reverse().forEach(j => {
+      const mood = MOODS.find(m => m.key === j.mood);
+      milestones.push({
+        icon: mood ? mood.icon : '☁️',
+        text: j.text.length > 30 ? j.text.slice(0, 30) + '…' : j.text,
+        time: fmtTime(j.time),
+        mood: j.mood,
+      });
+    });
+    // 加上拾取里程碑
+    if (stats.totalPicked > 0) {
+      milestones.unshift({ icon: '📫', text: `拾取了第${stats.totalPicked}封远方来信`, time: '', mood: 'healed' });
+    }
+
+    // 心境语录
+    const moodQuotes = {
+      happy: ['快乐是最好的化妆品 ✨', '你的笑容是最美的风景', '幸福不在远方，在当下'],
+      sad: ['泪水浇灌出的花更芬芳 🌸', '难过说明你在乎，在乎是种温柔', '雨天也有雨天的好看'],
+      angry: ['愤怒是内心在保护自己 🛡️', '深呼吸，一切都会过去', '风暴之后必有彩虹'],
+      confused: ['迷茫是成长的一部分 🌱', '不确定的人生才有惊喜', '慢慢来，比较快'],
+      lonely: ['独处是和自己对话的时光 🌙', '你比想象中更坚强', '孤独的灵魂最懂得温柔'],
+      healed: ['被治愈过的人最温柔 💜', '每一道伤痕都是勋章', '你已经走了很远的路了'],
+      calm: ['平静是最奢侈的幸福 🍃', '内心的安宁胜过一切', '波澜不惊，方见真意'],
+    };
+    const topQuote = moodQuotes[topMood.key] || moodQuotes.calm;
+    const todayQuote = topQuote[Math.floor(Math.random() * topQuote.length)];
 
     content.innerHTML = `
-      <div class="stat-row">
-        <div class="stat-card"><div class="stat-num">${journals.filter(j => j.status === 'published').length}</div><div class="stat-label">已发布</div></div>
-        <div class="stat-card"><div class="stat-num">${stats.totalPicked || 0}</div><div class="stat-label">已拾取</div></div>
-        <div class="stat-card"><div class="stat-num">${streak}</div><div class="stat-label">连续天数</div></div>
-        <div class="stat-card"><div class="stat-num">${moodTypes}/7</div><div class="stat-label">情绪种类</div></div>
+      <!-- 总览卡片 -->
+      <div class="ach-hero">
+        <div class="ach-hero-left">
+          <div class="ach-hero-emoji">${topMood.icon}</div>
+          <div class="ach-hero-info">
+            <div class="ach-hero-title">你的心境主色调：${topMood.label}</div>
+            <div class="ach-hero-quote">"${todayQuote}"</div>
+          </div>
+        </div>
+        <div class="ach-hero-right">
+          <div class="ach-hero-stat">
+            <span class="ahs-num">${published.length}</span>
+            <span class="ahs-label">篇手账</span>
+          </div>
+          <div class="ach-hero-stat">
+            <span class="ahs-num">${streak}</span>
+            <span class="ahs-label">天连续</span>
+          </div>
+          <div class="ach-hero-stat">
+            <span class="ahs-num">${moodTypes}/7</span>
+            <span class="ahs-label">情绪色</span>
+          </div>
+        </div>
       </div>
 
+      <!-- 成就进度条 -->
+      <div class="ach-progress-section">
+        <div class="ach-progress-header">
+          <span>🏅 成就进度</span>
+          <span class="ach-progress-num">${unlockedCount}/${totalAchievements} 已解锁</span>
+        </div>
+        <div class="ach-progress-bar">
+          <div class="ach-progress-fill" style="width:${achPercent}%"></div>
+        </div>
+        ${achPercent >= 100 ? '<div class="ach-complete-badge">🏆 全成就达成！</div>' : `<div class="ach-next-hint">距离下一个成就还需继续加油哦～</div>`}
+      </div>
+
+      <!-- 情绪分布 + 7日趋势 -->
+      <div class="ach-charts-row">
+        <div class="ach-chart-card">
+          <div class="ach-chart-title">🎨 情绪分布</div>
+          <div class="ach-mood-bars">
+            ${MOODS.map(m => {
+              const count = moodCounts[m.key] || 0;
+              const percent = Math.round((count / maxMoodCount) * 100);
+              return `<div class="ach-mood-bar-row">
+                <div class="amb-icon">${m.icon}</div>
+                <div class="amb-track"><div class="amb-fill ${m.cls}" style="width:${percent}%"></div></div>
+                <div class="amb-count">${count}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="ach-chart-card">
+          <div class="ach-chart-title">📈 近7日书写</div>
+          <div class="ach-trend-chart">
+            ${last7Days.map(d => {
+              const barH = Math.round((d.count / maxDayCount) * 100);
+              const moodObj = MOODS.find(m => m.key === d.mood);
+              const color = moodObj ? moodObj.cls : '';
+              return `<div class="atc-col">
+                <div class="atc-bar-wrap">
+                  <div class="atc-bar ${color}" style="height:${barH}%">
+                    ${d.count > 0 ? `<span class="atc-count">${d.count}</span>` : ''}
+                  </div>
+                </div>
+                <div class="atc-label">${d.label}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- 日历 + 成就徽章 -->
       <div class="ach-layout">
         <div class="ach-left">
           <div class="mood-calendar">
@@ -1558,21 +2154,47 @@
             <div class="calendar-grid" id="calendarGrid">
               ${renderCalendar()}
             </div>
+            <div class="calendar-legend">
+              ${MOODS.slice(0, 5).map(m => `<span class="cl-item"><span>${m.icon}</span>${m.label}</span>`).join('')}
+            </div>
           </div>
         </div>
         <div class="ach-right">
-          <h3 style="color:#634faa;margin:0 0 6px;font-size:18px;">🏅 成就徽章</h3>
+          <div class="ach-badges-header">
+            <h3>🏅 成就徽章</h3>
+            <span class="ach-badges-count">${unlockedCount}/${totalAchievements}</span>
+          </div>
           <div class="achievement-grid">
             ${ACHIEVEMENTS.map(a => {
               const unlocked = unlockedIds.includes(a.id);
               return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
-                <div class="ach-icon">${a.icon}</div>
-                <div class="ach-name">${a.name}</div>
-                <div class="ach-desc">${a.desc}</div>
+                <div class="ach-icon">${unlocked ? a.icon : '🔒'}</div>
+                <div class="ach-name">${unlocked ? a.name : '???'}</div>
+                <div class="ach-desc">${unlocked ? a.desc : '继续探索来解锁'}</div>
+                ${unlocked ? '<div class="ach-unlocked-tag">已解锁 ✅</div>' : ''}
               </div>`;
             }).join('')}
           </div>
         </div>
+      </div>
+
+      <!-- 里程碑时间线 -->
+      <div class="ach-milestones">
+        <div class="ach-chart-title" style="margin-bottom:16px;">🗺️ 成长足迹</div>
+        ${milestones.length === 0 ?
+          '<div class="empty-state"><div class="empty-icon">🌱</div>开始写手账，留下你的成长足迹吧</div>' :
+          `<div class="milestone-timeline">
+            ${milestones.map((m, i) => `
+              <div class="milestone-item ${i === 0 ? 'latest' : ''}">
+                <div class="ms-dot">${m.icon}</div>
+                <div class="ms-content">
+                  <div class="ms-text">${m.text}</div>
+                  ${m.time ? `<div class="ms-time">${m.time}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>`
+        }
       </div>
     `;
 

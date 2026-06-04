@@ -7,12 +7,31 @@
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-<!-- 欢迎弹窗（点击后播放背景音乐并进入） -->
+<!-- 欢迎弹窗（沉浸式入场动画） -->
 <div class="welcome-overlay" id="welcomeOverlay">
-  <div class="welcome-cloud">☁️</div>
-  <div class="welcome-title">云端情绪手账</div>
-  <div class="welcome-sub">把心事藏进云朵，与温柔不期而遇</div>
-  <button class="btn" id="welcomeBtn">进入云端</button>
+  <div class="welcome-stars" id="welcomeStars"></div>
+  <div class="welcome-clouds">
+    <div class="wc wc1">☁️</div>
+    <div class="wc wc2">⛅</div>
+    <div class="wc wc3">☁️</div>
+    <div class="wc wc4">🌤️</div>
+    <div class="wc wc5">☁️</div>
+  </div>
+  <div class="welcome-center">
+    <div class="welcome-hero-cloud">☁️</div>
+    <div class="welcome-title" id="welcomeTitle"></div>
+    <div class="welcome-sub" id="welcomeSub"></div>
+    <button class="btn welcome-enter-btn" id="welcomeBtn">
+      <span class="wbtn-icon">☁</span> 踏入云端
+    </button>
+  </div>
+  <div class="welcome-bottom-hint">点击进入，聆听云端之声</div>
+</div>
+
+<!-- 过渡遮罩（点击进入后的裂开动画） -->
+<div class="transition-overlay" id="transitionOverlay">
+  <div class="trans-half trans-left"></div>
+  <div class="trans-half trans-right"></div>
 </div>
 
 <!-- 全局背景音乐开关 -->
@@ -55,21 +74,23 @@
 
       <!-- 精选云絮 -->
       <div class="home-featured" id="homeFeatured"></div>
+
+
     </div>
 
     <!-- 匿名云絮互动 -->
     <div class="note-paper" data-page="cloudwall">
-      <h2>匿名云絮 · 飘在风中的悄悄话</h2>
-      <p class="note-desc">匿名写下一句心事、一个愿望、一段碎碎念，让它变成云絮飘在空中。没有人知道你是谁，但会有人懂你。可以给喜欢的云絮点赞，也可以留下温暖的回复。</p>
+      <h2>云絮墙 · 匿名碎碎念</h2>
+      <p class="note-desc">匿名留下一句碎碎念、一个小心愿、一段悄悄话，让它变成云絮飘在风中。没人知道你是谁，但会有人懂你——给喜欢的云絮点赞，留下温暖的回复。</p>
       <div id="cloudWallContent"></div>
       <button class="btn" id="btnCloudPost" style="margin-top:18px;">✍️ 发布一条云絮</button>
     </div>
 
     <div class="note-paper" data-page="pick">
-      <h2>拾云之页 · 翻阅他人手账</h2>
-      <p class="note-desc">按照开心、迷茫、治愈、孤独等情绪标签筛选云端信纸，阅读陌生人藏在纸页里的温柔，遇见同频的灵魂。</p>
+      <h2>拾云之页 · 拆一封远方来信</h2>
+      <p class="note-desc">云端飘来陌生人写的长信——按心情标签筛选，或随机拾取一封手账，安静地读一段别人的故事，感受同频的温柔。</p>
       <div class="pick-content" id="pickContent"></div>
-      <button class="btn" id="btnPick">随机拾取一封手账</button>
+      <button class="btn" id="btnPick">✉️ 随机收一封信</button>
     </div>
 
     <div class="note-paper" data-page="mine">
@@ -96,7 +117,7 @@
   <div class="nav-bar">
     <div class="nav-item active" data-target="home">云扉首页</div>
     <div class="nav-item" data-target="cloudwall">云絮墙</div>
-    <div class="nav-item" data-target="pick">拾云之页</div>
+    <div class="nav-item" data-target="pick">拾云信箱</div>
     <div class="nav-item" data-target="mine">我的手账</div>
     <div class="nav-item" data-target="relax">静心小筑</div>
     <div class="nav-item" data-target="achievement">云途图鉴</div>

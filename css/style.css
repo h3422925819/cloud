@@ -586,6 +586,140 @@ body {
 /* 首页链接到云絮墙 */
 .home-cloudwall-link { margin-top: 18px; text-align: center; }
 
+/* ===== 首页升级样式 ===== */
+.home-shortcuts {
+  display: flex; gap: 12px; justify-content: center;
+  margin: 20px 0 28px; flex-wrap: wrap;
+}
+.home-shortcuts .btn-outline {
+  font-size: 15px;
+}
+
+/* 今日情绪天气卡 */
+.home-mood-weather {
+  background: linear-gradient(135deg, rgba(199,186,240,0.3), rgba(184,167,227,0.15));
+  border-radius: 18px; padding: 22px 28px;
+  display: flex; align-items: center; gap: 18px;
+  margin-bottom: 10px; border: 1px solid rgba(199,186,240,0.35);
+  position: relative; overflow: hidden;
+}
+.home-mood-weather::before {
+  content: ''; position: absolute; top: -20px; right: -20px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(199,186,240,0.15); filter: blur(10px);
+}
+.mood-weather-icon { font-size: 48px; line-height: 1; }
+.mood-weather-info { flex: 1; }
+.mood-weather-greeting { color: #634faa; font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.mood-weather-desc { color: #8877b8; font-size: 14px; line-height: 1.6; }
+
+/* 首页统计概览 */
+.home-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  margin-bottom: 28px;
+}
+.home-stat-card {
+  background: rgba(255,255,255,0.7); border-radius: 16px;
+  padding: 18px 12px; text-align: center;
+  border: 1px solid #ece5ff; transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+.home-stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(168,148,222,0.15); }
+.home-stat-card .hs-icon { font-size: 28px; margin-bottom: 6px; }
+.home-stat-card .hs-num { color: #634faa; font-size: 26px; font-weight: 700; }
+.home-stat-card .hs-label { color: #999; font-size: 12px; margin-top: 2px; }
+
+/* 首页区块标题 */
+.home-section-title {
+  color: #634faa; font-size: 18px; font-weight: 600;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.home-section-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, #e0d8f5, transparent);
+}
+
+/* 最近手账区 */
+.home-recent { margin-bottom: 28px; }
+
+/* 精选云絮区 */
+.home-featured { margin-bottom: 20px; }
+.featured-fluffs {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.featured-fluff-card {
+  background: rgba(255,255,255,0.75); border-radius: 16px;
+  padding: 18px 20px; border: 1px solid #ece5ff;
+  transition: all 0.3s; cursor: default;
+}
+.featured-fluff-card:hover {
+  transform: translateY(-3px); box-shadow: 0 8px 24px rgba(168,148,222,0.16);
+}
+.featured-fluff-card .ff-avatar {
+  font-size: 22px; margin-bottom: 8px;
+}
+.featured-fluff-card .ff-text {
+  color: #444455; font-size: 14px; line-height: 1.7;
+  margin-bottom: 8px;
+}
+.featured-fluff-card .ff-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  color: #aaa; font-size: 12px;
+}
+.featured-fluff-card .ff-likes { color: #e8a0c0; }
+
+/* 深夜主题适配 */
+body.theme-night .home-mood-weather {
+  background: linear-gradient(135deg, rgba(40,50,100,0.4), rgba(30,40,80,0.3));
+  border-color: rgba(60,70,120,0.4);
+}
+body.theme-night .home-mood-weather::before { background: rgba(60,70,120,0.2); }
+body.theme-night .mood-weather-greeting { color: #c0c8f0; }
+body.theme-night .mood-weather-desc { color: #9098c0; }
+body.theme-night .home-stat-card { background: rgba(25,32,70,0.7); border-color: rgba(60,70,120,0.4); }
+body.theme-night .home-stat-card .hs-num { color: #c0c8f0; }
+body.theme-night .home-stat-card .hs-label { color: #707898; }
+body.theme-night .home-section-title { color: #c0c8f0; }
+body.theme-night .home-section-title::after { background: linear-gradient(to right, rgba(60,70,120,0.5), transparent); }
+body.theme-night .featured-fluff-card { background: rgba(25,32,70,0.75); border-color: rgba(60,70,120,0.4); }
+body.theme-night .featured-fluff-card .ff-text { color: #b0b8d0; }
+
+/* 清晨主题适配 */
+body.theme-morning .home-mood-weather {
+  background: linear-gradient(135deg, rgba(245,220,160,0.25), rgba(232,200,96,0.12));
+  border-color: rgba(245,220,160,0.35);
+}
+body.theme-morning .home-mood-weather::before { background: rgba(245,220,160,0.15); }
+body.theme-morning .mood-weather-greeting { color: #7a6520; }
+body.theme-morning .mood-weather-desc { color: #a88a40; }
+body.theme-morning .home-stat-card { background: rgba(255,252,245,0.7); border-color: #ffe4b0; }
+body.theme-morning .home-stat-card .hs-num { color: #7a6520; }
+body.theme-morning .home-section-title { color: #7a6520; }
+body.theme-morning .home-section-title::after { background: linear-gradient(to right, #ffe4b0, transparent); }
+body.theme-morning .featured-fluff-card { background: rgba(255,252,245,0.75); border-color: #ffe4b0; }
+body.theme-morning .featured-fluff-card .ff-text { color: #5a4a30; }
+
+/* 黄昏主题适配 */
+body.theme-dusk .home-mood-weather {
+  background: linear-gradient(135deg, rgba(255,180,130,0.25), rgba(240,160,112,0.12));
+  border-color: rgba(255,180,130,0.35);
+}
+body.theme-dusk .home-mood-weather::before { background: rgba(255,180,130,0.15); }
+body.theme-dusk .mood-weather-greeting { color: #a04020; }
+body.theme-dusk .mood-weather-desc { color: #c06840; }
+body.theme-dusk .home-stat-card { background: rgba(255,248,242,0.7); border-color: #ffd0b8; }
+body.theme-dusk .home-stat-card .hs-num { color: #a04020; }
+body.theme-dusk .home-section-title { color: #a04020; }
+body.theme-dusk .home-section-title::after { background: linear-gradient(to right, #ffd0b8, transparent); }
+body.theme-dusk .featured-fluff-card { background: rgba(255,248,242,0.75); border-color: #ffd0b8; }
+body.theme-dusk .featured-fluff-card .ff-text { color: #5a3a28; }
+
+@media (max-width: 640px) {
+  .home-stats { grid-template-columns: repeat(2, 1fr); }
+  .home-mood-weather { flex-direction: column; text-align: center; padding: 18px; }
+}
+
 /* ===== 4套时段主题 ===== */
 
 /* -- 午后（默认，现有淡紫） -- */

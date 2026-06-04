@@ -33,14 +33,28 @@
       <p>把心事藏进云朵，与温柔不期而遇</p>
     </div>
 
-    <!-- 5个手账页面 -->
+    <!-- 首页 -->
     <div class="note-paper active" data-page="home">
       <h2>云扉首页 · 散落的情绪信纸</h2>
       <p class="note-desc">云朵之间漂浮着无数陌生人的心事，写下你的心情，让文字随云缓缓飘荡；也可以随机拾取他人的手账，安静共情每一份情绪。</p>
-      <button class="btn" id="btnWrite">写下今日心情</button>
-      <div class="home-cloudwall-link" style="margin-top:18px;text-align:center;">
-        <button class="btn-outline" id="goCloudWall" style="font-size:15px;">🕊️ 进入匿名云絮墙</button>
+
+      <!-- 今日情绪天气 -->
+      <div class="home-mood-weather" id="homeMoodWeather"></div>
+
+      <!-- 快捷入口 -->
+      <div class="home-shortcuts">
+        <button class="btn" id="btnWrite">写下今日心情</button>
+        <button class="btn-outline" id="goCloudWall">🕊️ 匿名云絮墙</button>
       </div>
+
+      <!-- 情绪统计概览 -->
+      <div class="home-stats" id="homeStats"></div>
+
+      <!-- 最近手账 -->
+      <div class="home-recent" id="homeRecent"></div>
+
+      <!-- 精选云絮 -->
+      <div class="home-featured" id="homeFeatured"></div>
     </div>
 
     <!-- 匿名云絮互动 -->
@@ -54,25 +68,27 @@
     <div class="note-paper" data-page="pick">
       <h2>拾云之页 · 翻阅他人手账</h2>
       <p class="note-desc">按照开心、迷茫、治愈、孤独等情绪标签筛选云端信纸，阅读陌生人藏在纸页里的温柔，遇见同频的灵魂。</p>
+      <div class="pick-content" id="pickContent"></div>
       <button class="btn" id="btnPick">随机拾取一封手账</button>
     </div>
 
     <div class="note-paper" data-page="mine">
       <h2>我的手账 · 私人情绪记录本</h2>
       <p class="note-desc">收纳你发布、收藏、保存草稿的全部手账，留存每一段喜怒哀乐，记录独属于你的情绪时光。</p>
+      <div class="mine-content" id="mineContent"></div>
       <button class="btn" id="btnMine">查看我的草稿</button>
     </div>
 
     <div class="note-paper" data-page="relax">
       <h2>静心小筑 · 治愈放松专区</h2>
       <p class="note-desc">云端轻音乐、温柔治愈短句、光点解压小游戏，当内心烦躁时，来这里卸下所有疲惫。</p>
-      <button class="btn" id="btnRelax">播放云端轻音乐</button>
+      <div class="relax-content" id="relaxContent"></div>
     </div>
 
     <div class="note-paper" data-page="achievement">
       <h2>云途图鉴 · 情绪成长成就</h2>
       <p class="note-desc">左边查看情绪书写日历，右边解锁成就徽章，见证内心慢慢变得柔软强大。</p>
-      <button class="btn" id="btnAch">查看全部成就</button>
+      <div class="ach-content" id="achContent"></div>
     </div>
   </div>
 

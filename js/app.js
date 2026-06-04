@@ -623,6 +623,128 @@
   // 写下心情弹窗
   let selectedMood = null;
 
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 6) return { icon: '🌙', text: '夜深了', desc: '星光温柔，给自己一个拥抱，晚安' };
+    if (h < 9) return { icon: '🌅', text: '早安', desc: '新的一天像一朵刚绽放的云，去拥抱它吧' };
+    if (h < 12) return { icon: '☀️', text: '上午好', desc: '阳光正好，微风不燥，今天也值得期待' };
+    if (h < 14) return { icon: '🌤️', text: '中午好', desc: '吃饱了就眯一会儿，云朵也在午睡呢' };
+    if (h < 17) return { icon: '⛅', text: '下午好', desc: '来杯茶歇一歇，让心情随云飘一会儿' };
+    if (h < 19) return { icon: '🌇', text: '傍晚好', desc: '晚霞正在天空画画，记得抬头看看' };
+    if (h < 22) return { icon: '🌙', text: '晚上好', desc: '卸下今天的疲惫，让云朵替你盖上被子' };
+    return { icon: '🌌', text: '夜深了', desc: '有些话只适合和星星说，写下来吧' };
+  }
+
+  function renderHomeFull() {
+    // 情绪天气卡
+    const weatherEl = $('#homeMoodWeather');
+    if (weatherEl) {
+      const g = getGreeting();
+      const journals = Store.get('journals', []);
+      const todayJ = journals.filter(j => {
+        const d = new Date(j.time);
+        const t = new Date();
+        return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+      });
+      let moodHint = '';
+      if (todayJ.length > 0) {
+        const mood = MOODS.find(m => m.key === todayJ[0].mood);
+        moodHint = ` · 今天的心情是 ${mood ? mood.icon + mood.label : ''}`;
+      } else {
+        moodHint = ' · 今天还没记录心情哦';
+      }
+      weatherEl.innerHTML = `
+        <div class="mood-weather-icon">${g.icon}</div>
+        <div class="mood-weather-info">
+          <div class="mood-weather-greeting">${g.text}${moodHint}</div>
+          <div class="mood-weather-desc">${g.desc}</div>
+        </div>
+      `;
+    }
+
+    // 统计概览
+    const statsEl = $('#homeStats');
+    if (statsEl) {
+      const journals = Store.get('journals', []);
+      const stats = getStats();
+      const allFluffs = getCloudFluffs();
+      const published = journals.filter(j => j.status === 'published').length;
+      const streak = calcStreak(journals);
+      const moodTypes = new Set(journals.map(j => j.mood)).size;
+      statsEl.innerHTML = `
+        <div class="home-stat-card">
+          <div class="hs-icon">📝</div>
+          <div class="hs-num">${published}</div>
+          <div class="hs-label">已发布手账</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="hs-icon">🔥</div>
+          <div class="hs-num">${streak}</div>
+          <div class="hs-label">连续书写天数</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="hs-icon">🌈</div>
+          <div class="hs-num">${moodTypes}/7</div>
+          <div class="hs-label">探索的情绪</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="hs-icon">☁️</div>
+          <div class="hs-num">${allFluffs.length}</div>
+          <div class="hs-label">云端云絮</div>
+        </div>
+      `;
+    }
+
+    // 最近手账
+    renderHomeRecent();
+
+    // 精选云絮
+    renderHomeFeatured();
+  }
+
+  // 首页最近手账展示
+  function renderHomeRecent() {
+    const recentArea = $('#homeRecent');
+    if (!recentArea) return;
+    const journals = Store.get('journals', []).filter(j => j.status === 'published').slice(0, 3);
+    if (journals.length === 0) {
+      recentArea.innerHTML = `
+        <div class="home-section-title">最近的心情</div>
+        <div class="empty-state"><div class="empty-icon">☁️</div>还没有手账，点击上方按钮写下第一篇吧</div>
+      `;
+      return;
+    }
+    recentArea.innerHTML = `
+      <div class="home-section-title">最近的心情</div>
+      <div class="card-list">
+        ${journals.map(j => renderCardHTML(j)).join('')}
+      </div>
+    `;
+  }
+
+  function renderHomeFeatured() {
+    const featuredEl = $('#homeFeatured');
+    if (!featuredEl) return;
+    const fluffs = getCloudFluffs().slice(0, 3);
+    if (fluffs.length === 0) return;
+    featuredEl.innerHTML = `
+      <div class="home-section-title">精选云絮</div>
+      <div class="featured-fluffs">
+        ${fluffs.map(f => {
+          const mood = MOODS.find(m => m.key === f.mood);
+          return `<div class="featured-fluff-card">
+            <div class="ff-avatar">${f.avatar || '☁️'}</div>
+            <div class="ff-text">${mood ? mood.icon + ' ' : ''}${f.text}</div>
+            <div class="ff-meta">
+              <span>${f.author || '匿名'}</span>
+              <span class="ff-likes">🤍 ${f.likes || 0}</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  }
+
   function openWriteModal() {
     selectedMood = null;
     const overlay = document.createElement('div');
@@ -710,28 +832,8 @@
   }
 
   // 首页按钮绑定
-  const homeBtn = $('[data-page="home"] .btn');
+  const homeBtn = $('#btnWrite');
   if (homeBtn) homeBtn.addEventListener('click', openWriteModal);
-
-  // 首页最近手账展示
-  function renderHomeRecent() {
-    const homePage = $('[data-page="home"]');
-    let recentArea = homePage.querySelector('.home-recent');
-    if (!recentArea) {
-      recentArea = document.createElement('div');
-      recentArea.className = 'home-recent';
-      homePage.appendChild(recentArea);
-    }
-    const journals = Store.get('journals', []).filter(j => j.status === 'published').slice(0, 3);
-    if (journals.length === 0) {
-      recentArea.innerHTML = '<div class="empty-state"><div class="empty-icon">☁️</div>还没有手账，快来写下第一篇吧</div>';
-      return;
-    }
-    recentArea.innerHTML = '<h3 style="color:#634faa;margin-bottom:14px;font-size:18px;">最近的心情</h3>' +
-      '<div class="card-list scroll-area">' +
-      journals.map(j => renderCardHTML(j)).join('') +
-      '</div>';
-  }
 
   /* ============ 页面2：匿名云絮墙 ============ */
   const ANON_AVATARS = ['☁️', '🌙', '⭐', '🌸', '🍃', '🦋', '🕊️', '💫', '🌈', '🍀'];
@@ -1025,21 +1127,23 @@
   let currentPicked = null;
 
   function renderPickPage() {
-    const pickPage = $('[data-page="pick"]');
-    let content = pickPage.querySelector('.pick-content');
-    if (!content) {
-      content = document.createElement('div');
-      content.className = 'pick-content';
-      // 在按钮前插入
-      pickPage.insertBefore(content, pickPage.querySelector('.btn'));
-    }
+    const content = $('#pickContent');
+    if (!content) return;
+
+    const pool = pickFilter === 'all' ? PRESET_JOURNALS : PRESET_JOURNALS.filter(j => j.mood === pickFilter);
+
     content.innerHTML = `
       <div class="filter-bar">
         <div class="filter-tag ${pickFilter === 'all' ? 'active' : ''}" data-filter="all">全部</div>
         ${MOODS.map(m => `<div class="filter-tag ${pickFilter === m.key ? 'active' : ''}" data-filter="${m.key}">${m.icon} ${m.label}</div>`).join('')}
       </div>
-      <div id="pickResult" class="scroll-area">
-        ${currentPicked ? renderCardHTML(currentPicked, true) : '<div class="empty-state"><div class="empty-icon">☁️</div>点击下方按钮拾取一封云端手账</div>'}
+      ${currentPicked ? `<div class="scroll-area" style="margin-bottom:16px;">${renderCardHTML(currentPicked, true)}</div>` : ''}
+      <div class="home-section-title">云端信纸</div>
+      <div class="card-list scroll-area">
+        ${pool.length === 0 ?
+          '<div class="empty-state"><div class="empty-icon">☁️</div>该分类暂无手账</div>' :
+          pool.map(j => renderCardHTML(j, true)).join('')
+        }
       </div>
     `;
 
@@ -1047,9 +1151,12 @@
     $$('.filter-tag', content).forEach(tag => {
       tag.addEventListener('click', () => {
         pickFilter = tag.getAttribute('data-filter');
+        currentPicked = null;
         renderPickPage();
       });
     });
+
+    bindCardActions(content);
   }
 
   // 随机拾取
@@ -1084,13 +1191,9 @@
   let mineTab = 'published';
 
   function renderMinePage() {
-    const minePage = $('[data-page="mine"]');
-    let content = minePage.querySelector('.mine-content');
-    if (!content) {
-      content = document.createElement('div');
-      content.className = 'mine-content';
-      minePage.insertBefore(content, minePage.querySelector('.btn'));
-    }
+    const content = $('#mineContent');
+    if (!content) return;
+
     const journals = Store.get('journals', []);
     const filtered = mineTab === 'all' ? journals :
       mineTab === 'published' ? journals.filter(j => j.status === 'published') :
@@ -1130,7 +1233,7 @@
     bindCardActions(content);
   }
 
-  const mineBtn = $('[data-page="mine"] .btn');
+  const mineBtn = $('#btnMine');
   if (mineBtn) mineBtn.addEventListener('click', () => {
     mineTab = 'draft';
     renderMinePage();
@@ -1176,18 +1279,15 @@
   }
 
   function initRelaxPage() {
-    const relaxPage = $('[data-page="relax"]');
-    const content = relaxPage.querySelector('.relax-content');
-    if (relaxInited && content) {
+    const content = $('#relaxContent');
+    if (!content) return;
+    if (relaxInited) {
       // 已初始化过DOM，只需重启泡泡游戏
       resumeBubbleGame();
       return;
     }
 
-    const el = document.createElement('div');
-    el.className = 'relax-content';
-
-    el.innerHTML = `
+    content.innerHTML = `
       <div class="music-player">
         <div class="music-visualizer" id="musicVisualizer">
           ${Array.from({ length: 12 }, (_, i) => `<div class="music-bar" style="height:${8 + Math.random() * 10}px; animation-delay:${i * 0.08}s"></div>`).join('')}
@@ -1218,7 +1318,6 @@
       </div>
     `;
 
-    relaxPage.insertBefore(el, relaxPage.querySelector('.btn'));
     relaxInited = true;
 
     // 音乐控制
@@ -1417,23 +1516,14 @@
     setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, (dur + 0.5) * 1000);
   }
 
-  const relaxBtn = $('[data-page="relax"] .btn');
-  if (relaxBtn) relaxBtn.addEventListener('click', () => {
-    initRelaxPage();
-    if (!isMusicPlaying) playMusic();
-  });
+  // 静心小筑按钮已移除（内容默认渲染），音乐可通过页面内播放按钮控制
 
   /* ============ 页面5：云途图鉴 ============ */
   let calYear, calMonth;
 
   function renderAchievementPage() {
-    const achPage = $('[data-page="achievement"]');
-    let content = achPage.querySelector('.ach-content');
-    if (!content) {
-      content = document.createElement('div');
-      content.className = 'ach-content';
-      achPage.insertBefore(content, achPage.querySelector('.btn'));
-    }
+    const content = $('#achContent');
+    if (!content) return;
 
     const stats = getStats();
     const journals = Store.get('journals', []);
@@ -1533,13 +1623,7 @@
     return html;
   }
 
-  const achBtn = $('[data-page="achievement"] .btn');
-  if (achBtn) achBtn.addEventListener('click', () => {
-    renderAchievementPage();
-    // 滚动到成就区域
-    const grid = $('[data-page="achievement"] .achievement-grid');
-    if (grid) grid.scrollIntoView({ behavior: 'smooth' });
-  });
+  // 云途图鉴按钮已移除（内容默认渲染）
 
   /* ============ 通用卡片渲染 ============ */
   function renderCardHTML(journal, showFav = false, showDelete = false) {
@@ -1795,7 +1879,7 @@
   /* ============ 初始化 ============ */
   function init() {
     initTheme();
-    renderHomeRecent();
+    renderHomeFull();
     renderPickPage();
     renderMinePage();
     initRelaxPage();
@@ -1806,7 +1890,7 @@
 
     // 首页每次切换回时刷新
     const observer = new MutationObserver(() => {
-      if ($('[data-page="home"]').classList.contains('active')) renderHomeRecent();
+      if ($('[data-page="home"]').classList.contains('active')) renderHomeFull();
       if ($('[data-page="cloudwall"]').classList.contains('active')) renderCloudWall();
     });
     pages.forEach(p => observer.observe(p, { attributes: true, attributeFilter: ['class'] }));

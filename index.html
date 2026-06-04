@@ -7,163 +7,178 @@
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-<!-- 欢迎弹窗（沉浸式入场动画） -->
+
+<!-- ========== 欢迎页 ========== -->
 <div class="welcome-overlay" id="welcomeOverlay">
-  <div class="welcome-stars" id="welcomeStars"></div>
-  <div class="welcome-clouds">
-    <div class="wc wc1">☁️</div>
-    <div class="wc wc2">⛅</div>
-    <div class="wc wc3">☁️</div>
-    <div class="wc wc4">🌤️</div>
-    <div class="wc wc5">☁️</div>
+  <div class="welcome-clouds-bg"></div>
+  <div class="welcome-content">
+    <div class="welcome-cloud-icon">☁️</div>
+    <h1 class="welcome-title" id="welcomeTitle"></h1>
+    <p class="welcome-sub" id="welcomeSub"></p>
+    <button class="btn welcome-btn" id="welcomeBtn">踏入云端</button>
   </div>
-  <div class="welcome-center">
-    <div class="welcome-hero-cloud">☁️</div>
-    <div class="welcome-title" id="welcomeTitle"></div>
-    <div class="welcome-sub" id="welcomeSub"></div>
-    <button class="btn welcome-enter-btn" id="welcomeBtn">
-      <span class="wbtn-icon">☁</span> 踏入云端
-    </button>
-  </div>
-  <div class="welcome-bottom-hint">点击进入，聆听云端之声</div>
 </div>
 
-<!-- 过渡遮罩（点击进入后的裂开动画） -->
-<div class="transition-overlay" id="transitionOverlay">
-  <div class="trans-half trans-left"></div>
-  <div class="trans-half trans-right"></div>
-</div>
-
-<!-- 全局背景音乐开关 -->
-<button class="bg-music-btn" id="bgMusicBtn" title="背景音乐">🎵</button>
-
-<!-- 左侧抽一片云按钮 -->
-<button class="draw-cloud-btn" id="drawCloudBtn" title="抽一片云">☁ 抽一片云</button>
-
-<div class="wrap-main enter-anim">
-  <!-- 多层云层背景 -->
-  <div class="cloud-bg" id="cloudBox"></div>
-  <!-- 多种粒子容器 -->
-  <div id="particleBox"></div>
-
-  <div class="container">
-    <div class="page-header">
-      <h1>云端情绪手账</h1>
-      <p>把心事藏进云朵，与温柔不期而遇</p>
-    </div>
-
-    <!-- 首页 -->
-    <div class="note-paper active" data-page="home">
-      <h2>云扉首页 · 散落的情绪信纸</h2>
-      <p class="note-desc">云朵之间漂浮着无数陌生人的心事，写下你的心情，让文字随云缓缓飘荡；也可以随机拾取他人的手账，安静共情每一份情绪。</p>
-
-      <!-- 今日情绪天气 -->
-      <div class="home-mood-weather" id="homeMoodWeather"></div>
-
-      <!-- 快捷入口 -->
-      <div class="home-shortcuts">
-        <button class="btn" id="btnWrite">写下今日心情</button>
-        <button class="btn-outline" id="goCloudWall">🕊️ 匿名云絮墙</button>
-      </div>
-
-      <!-- 情绪统计概览 -->
-      <div class="home-stats" id="homeStats"></div>
-
-      <!-- 最近手账 -->
-      <div class="home-recent" id="homeRecent"></div>
-
-      <!-- 精选云絮 -->
-      <div class="home-featured" id="homeFeatured"></div>
-
-
-    </div>
-
-    <!-- 匿名云絮互动 -->
-    <div class="note-paper" data-page="cloudwall">
-      <h2>云絮墙 · 匿名碎碎念</h2>
-      <p class="note-desc">匿名留下一句碎碎念、一个小心愿、一段悄悄话，让它变成云絮飘在风中。没人知道你是谁，但会有人懂你——给喜欢的云絮点赞，留下温暖的回复。</p>
-      <div id="cloudWallContent"></div>
-      <button class="btn" id="btnCloudPost" style="margin-top:18px;">✍️ 发布一条云絮</button>
-    </div>
-
-    <div class="note-paper" data-page="pick">
-      <h2>拾云之页 · 拆一封远方来信</h2>
-      <p class="note-desc">云端飘来陌生人写的长信——按心情标签筛选，或随机拾取一封手账，安静地读一段别人的故事，感受同频的温柔。</p>
-      <div class="pick-content" id="pickContent"></div>
-      <button class="btn" id="btnPick">✉️ 随机收一封信</button>
-    </div>
-
-    <div class="note-paper" data-page="mine">
-      <h2>我的手账 · 私人情绪记录本</h2>
-      <p class="note-desc">收纳你发布、收藏、保存草稿的全部手账，留存每一段喜怒哀乐，记录独属于你的情绪时光。</p>
-      <div class="mine-content" id="mineContent"></div>
-      <button class="btn" id="btnMine">查看我的草稿</button>
-    </div>
-
-    <div class="note-paper" data-page="relax">
-      <h2>静心小筑 · 治愈放松专区</h2>
-      <p class="note-desc">云端轻音乐、温柔治愈短句、光点解压小游戏，当内心烦躁时，来这里卸下所有疲惫。</p>
-      <div class="relax-content" id="relaxContent"></div>
-    </div>
-
-    <div class="note-paper" data-page="achievement">
-      <h2>云途图鉴 · 情绪成长成就</h2>
-      <p class="note-desc">左边查看情绪书写日历，右边解锁成就徽章，见证内心慢慢变得柔软强大。</p>
-      <div class="ach-content" id="achContent"></div>
-    </div>
+<!-- ========== 顶部导航栏 ========== -->
+<nav class="top-nav" id="topNav">
+  <div class="nav-brand">☁️ 云端手账</div>
+  <div class="nav-links">
+    <a class="nav-link active" data-page="home">首页</a>
+    <a class="nav-link" data-page="write">写心情</a>
+    <a class="nav-link" data-page="journal">我的手账</a>
+    <a class="nav-link" data-page="favorites">收藏</a>
+    <a class="nav-link" data-page="settings">设置</a>
   </div>
+  <button class="nav-theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+</nav>
 
-  <!-- 底部导航栏 -->
-  <div class="nav-bar">
-    <div class="nav-item active" data-target="home">云扉首页</div>
-    <div class="nav-item" data-target="cloudwall">云絮墙</div>
-    <div class="nav-item" data-target="pick">拾云信箱</div>
-    <div class="nav-item" data-target="mine">我的手账</div>
-    <div class="nav-item" data-target="relax">静心小筑</div>
-    <div class="nav-item" data-target="achievement">云途图鉴</div>
-  </div>
+<!-- ========== 页面容器 ========== -->
+<main class="main-container" id="mainContainer">
 
-  <!-- 右下角云精灵AI -->
-  <div class="ai-sprite" id="sprite">☁</div>
-  <div class="ai-panel" id="aiPanel">
-    <div class="ai-panel-header">
-      <div class="sprite-avatar">☁</div>
-      <div class="sprite-info">
-        <h3>云精灵</h3>
-        <p>你的情绪陪伴伙伴</p>
+  <!-- ===== 首页 ===== -->
+  <section class="page active" data-page="home">
+    <!-- 今日心情卡 -->
+    <div class="hero-card">
+      <div class="hero-greeting">
+        <h2 id="greetingText">你好呀 ☁️</h2>
+        <p id="greetingSub">今天的心情是什么样的？</p>
       </div>
-      <div class="close-ai" id="closeAi">✕</div>
+      <button class="btn hero-write-btn" onclick="switchPage('write')">✏️ 写下此刻心情</button>
     </div>
-    <div class="ai-panel-body">
-      <div class="ai-quick-actions" id="aiQuickActions">
-        <div class="ai-quick-btn" data-msg="今天心情不太好">😔 心情不好</div>
-        <div class="ai-quick-btn" data-msg="我好开心！">😄 好开心</div>
-        <div class="ai-quick-btn" data-msg="觉得好孤独">🌙 好孤独</div>
-        <div class="ai-quick-btn" data-msg="好迷茫不知道怎么办">😶 迷茫中</div>
-        <div class="ai-quick-btn" data-msg="帮我润色一段手账文字">✍️ 润色文字</div>
-        <div class="ai-quick-btn" data-msg="给我一句治愈的话">💫 治愈我</div>
+
+    <!-- 统计概览 -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-number" id="statTotal">0</div>
+        <div class="stat-label">篇手账</div>
       </div>
-      <!-- 昼夜模式切换 -->
-      <div class="theme-switch-row" id="themeSwitchRow">
-        <span class="theme-switch-label">🌅 昼夜模式</span>
-        <div class="theme-switch-track" id="themeSwitchTrack">
-          <div class="theme-switch-options">
-            <div class="theme-opt active" data-theme="auto">自动</div>
-            <div class="theme-opt" data-theme="morning">清晨</div>
-            <div class="theme-opt" data-theme="afternoon">午后</div>
-            <div class="theme-opt" data-theme="dusk">黄昏</div>
-            <div class="theme-opt" data-theme="night">深夜</div>
-          </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-number" id="statStreak">0</div>
+        <div class="stat-label">天连续</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💜</div>
+        <div class="stat-number" id="statFav">0</div>
+        <div class="stat-label">个收藏</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🌈</div>
+        <div class="stat-number" id="statMoods">0</div>
+        <div class="stat-label">种情绪</div>
+      </div>
+    </div>
+
+    <!-- 最近手账 -->
+    <div class="section-header">
+      <h3>最近手账</h3>
+      <a class="section-more" data-page="journal">查看全部 →</a>
+    </div>
+    <div class="card-grid" id="recentJournals"></div>
+    <div class="empty-state" id="homeEmpty" style="display:none;">
+      <div class="empty-icon">☁️</div>
+      <p>还没有手账，写下你的第一篇吧</p>
+      <button class="btn" onclick="switchPage('write')">开始书写</button>
+    </div>
+  </section>
+
+  <!-- ===== 写心情 ===== -->
+  <section class="page" data-page="write">
+    <div class="write-card">
+      <h2>写下此刻心情 ✏️</h2>
+      <div class="write-form">
+        <input class="write-title-input" id="writeTitle" type="text" placeholder="给这篇手账起个标题（可选）" maxlength="30"/>
+        <textarea class="write-textarea" id="writeContent" placeholder="今天的心情怎么样？把心事藏进云朵里…" maxlength="500"></textarea>
+        <div class="write-footer">
+          <span class="write-count"><span id="writeCharCount">0</span>/500</span>
+        </div>
+        <div class="mood-selector">
+          <p class="mood-label">选择情绪标签：</p>
+          <div class="mood-tags" id="moodTags"></div>
+        </div>
+        <div class="write-actions">
+          <button class="btn btn-secondary" id="saveDraftBtn">存为草稿</button>
+          <button class="btn btn-primary" id="publishBtn">☁️ 发布到云端</button>
         </div>
       </div>
-      <div class="ai-messages" id="aiMessages"></div>
-      <div class="ai-input-row">
-        <textarea id="aiInput" placeholder="和云精灵说说话…"></textarea>
-        <button class="btn" id="aiSendBtn">发送</button>
+    </div>
+  </section>
+
+  <!-- ===== 我的手账 ===== -->
+  <section class="page" data-page="journal">
+    <div class="section-header">
+      <h2>我的手账 📖</h2>
+    </div>
+    <!-- 标签筛选 -->
+    <div class="filter-bar" id="journalFilter">
+      <button class="filter-tag active" data-filter="all">全部</button>
+      <button class="filter-tag" data-filter="published">已发布</button>
+      <button class="filter-tag" data-filter="draft">草稿</button>
+    </div>
+    <div class="card-grid" id="journalList"></div>
+    <div class="empty-state" id="journalEmpty" style="display:none;">
+      <div class="empty-icon">📝</div>
+      <p>还没有手账</p>
+    </div>
+  </section>
+
+  <!-- ===== 收藏 ===== -->
+  <section class="page" data-page="favorites">
+    <div class="section-header">
+      <h2>我的收藏 💜</h2>
+    </div>
+    <div class="card-grid" id="favList"></div>
+    <div class="empty-state" id="favEmpty" style="display:none;">
+      <div class="empty-icon">💜</div>
+      <p>还没有收藏</p>
+    </div>
+  </section>
+
+  <!-- ===== 设置 ===== -->
+  <section class="page" data-page="settings">
+    <div class="settings-card">
+      <h2>个人设置 ⚙️</h2>
+      <div class="setting-item">
+        <label class="setting-label">昵称</label>
+        <div class="setting-row">
+          <input class="setting-input" id="nicknameInput" type="text" placeholder="输入你的昵称" maxlength="12"/>
+          <button class="btn btn-small" id="saveNicknameBtn">保存</button>
+        </div>
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">主题模式</label>
+        <div class="theme-options" id="themeOptions">
+          <button class="theme-opt" data-theme="light">☀️ 白天</button>
+          <button class="theme-opt" data-theme="night">🌙 夜晚</button>
+        </div>
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">我的发布</label>
+        <p class="setting-desc" id="myPublishCount">已发布 0 篇手账</p>
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">数据管理</label>
+        <div class="setting-row">
+          <button class="btn btn-secondary btn-small" id="exportBtn">导出数据</button>
+          <button class="btn btn-danger btn-small" id="clearDataBtn">清空所有数据</button>
+        </div>
       </div>
     </div>
+  </section>
+
+</main>
+
+<!-- ========== 详情弹窗 ========== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card" id="modalCard">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
+
+<!-- ========== Toast ========== -->
+<div class="toast" id="toast"></div>
 
 <script src="js/app.js"></script>
 </body>

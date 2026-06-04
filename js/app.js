@@ -37,7 +37,26 @@
   function getMood(key) { return MOODS.find(m => m.key === key) || MOODS[1]; }
 
   /* ============ 状态 ============ */
-  let journals = Store.get('journals', []);
+  let journals = (() => {
+    try {
+      const raw = Store.get('journals', []);
+      if (!Array.isArray(raw)) return [];
+      // 兼容旧数据：映射字段名
+      return raw.filter(j => j && typeof j === 'object').map(j => ({
+        id: j.id || genId(),
+        mood: j.mood || 'calm',
+        title: j.title || '',
+        text: j.text || j.content || '',
+        time: j.time || j.timestamp || new Date().toISOString(),
+        status: j.status || 'published',
+        favorited: !!j.favorited,
+        mine: j.mine !== false,
+      }));
+    } catch (e) {
+      console.error('journals init error:', e);
+      return [];
+    }
+  })();
   let selectedMood = null;
   let currentFilter = 'all';
 
@@ -142,34 +161,40 @@
 
   /* ============ 首页渲染 ============ */
   function renderHome() {
-    // 问候
-    const g = getGreeting();
-    $('#greetingText').textContent = g.text;
-    $('#greetingSub').textContent = g.sub;
+    try {
+      const g = getGreeting();
+      const greetText = $('#greetingText');
+      const greetSub = $('#greetingSub');
+      if (greetText) greetText.textContent = g.text;
+      if (greetSub) greetSub.textContent = g.sub;
 
-    // 统计
-    const published = journals.filter(j => j.status === 'published');
-    const favorited = journals.filter(j => j.favorited);
-    const moodTypes = new Set(journals.filter(j => j.mood).map(j => j.mood)).size;
-    const streak = calcStreak();
+      const published = journals.filter(j => j.status === 'published');
+      const favorited = journals.filter(j => j.favorited);
+      const moodTypes = new Set(journals.filter(j => j.mood).map(j => j.mood)).size;
+      const streak = calcStreak();
 
-    $('#statTotal').textContent = published.length;
-    $('#statStreak').textContent = streak;
-    $('#statFav').textContent = favorited.length;
-    $('#statMoods').textContent = moodTypes;
+      const statTotal = $('#statTotal');
+      const statStreak = $('#statStreak');
+      const statFav = $('#statFav');
+      const statMoods = $('#statMoods');
+      if (statTotal) statTotal.textContent = published.length;
+      if (statStreak) statStreak.textContent = streak;
+      if (statFav) statFav.textContent = favorited.length;
+      if (statMoods) statMoods.textContent = moodTypes;
 
-    // 最近手账
-    const recent = published.slice(-3).reverse();
-    const grid = $('#recentJournals');
-    const empty = $('#homeEmpty');
-    if (recent.length === 0) {
-      grid.innerHTML = '';
-      empty.style.display = '';
-    } else {
-      empty.style.display = 'none';
-      grid.innerHTML = recent.map(j => cardHTML(j)).join('');
-      bindCardActions(grid);
-    }
+      const recent = published.slice(-3).reverse();
+      const grid = $('#recentJournals');
+      const empty = $('#homeEmpty');
+      if (!grid) return;
+      if (recent.length === 0) {
+        grid.innerHTML = '';
+        if (empty) empty.style.display = '';
+      } else {
+        if (empty) empty.style.display = 'none';
+        grid.innerHTML = recent.map(j => cardHTML(j)).join('');
+        bindCardActions(grid);
+      }
+    } catch (e) { console.error('renderHome error:', e); }
   }
 
   function calcStreak() {
@@ -357,20 +382,23 @@
 
   /* ============ 我的手账 ============ */
   function renderJournal() {
-    let list = journals.slice().reverse();
-    if (currentFilter === 'published') list = list.filter(j => j.status === 'published');
-    else if (currentFilter === 'draft') list = list.filter(j => j.status === 'draft');
+    try {
+      let list = journals.slice().reverse();
+      if (currentFilter === 'published') list = list.filter(j => j.status === 'published');
+      else if (currentFilter === 'draft') list = list.filter(j => j.status === 'draft');
 
-    const grid = $('#journalList');
-    const empty = $('#journalEmpty');
-    if (list.length === 0) {
-      grid.innerHTML = '';
-      empty.style.display = '';
-    } else {
-      empty.style.display = 'none';
-      grid.innerHTML = list.map(j => cardHTML(j)).join('');
-      bindCardActions(grid);
-    }
+      const grid = $('#journalList');
+      const empty = $('#journalEmpty');
+      if (!grid) return;
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        if (empty) empty.style.display = '';
+      } else {
+        if (empty) empty.style.display = 'none';
+        grid.innerHTML = list.map(j => cardHTML(j)).join('');
+        bindCardActions(grid);
+      }
+    } catch (e) { console.error('renderJournal error:', e); }
   }
 
   function initJournalFilter() {
@@ -386,31 +414,37 @@
 
   /* ============ 收藏页 ============ */
   function renderFavorites() {
-    const list = journals.filter(j => j.favorited).reverse();
-    const grid = $('#favList');
-    const empty = $('#favEmpty');
-    if (list.length === 0) {
-      grid.innerHTML = '';
-      empty.style.display = '';
-    } else {
-      empty.style.display = 'none';
-      grid.innerHTML = list.map(j => cardHTML(j)).join('');
-      bindCardActions(grid);
-    }
+    try {
+      const list = journals.filter(j => j.favorited).reverse();
+      const grid = $('#favList');
+      const empty = $('#favEmpty');
+      if (!grid) return;
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        if (empty) empty.style.display = '';
+      } else {
+        if (empty) empty.style.display = 'none';
+        grid.innerHTML = list.map(j => cardHTML(j)).join('');
+        bindCardActions(grid);
+      }
+    } catch (e) { console.error('renderFavorites error:', e); }
   }
 
   /* ============ 设置页 ============ */
   function renderSettings() {
-    const nickname = Store.get('nickname', '');
-    $('#nicknameInput').value = nickname;
-    const published = journals.filter(j => j.status === 'published').length;
-    $('#myPublishCount').textContent = `已发布 ${published} 篇手账`;
+    try {
+      const nickname = Store.get('nickname', '');
+      const nickInput = $('#nicknameInput');
+      if (nickInput) nickInput.value = nickname;
+      const published = journals.filter(j => j.status === 'published').length;
+      const pubCount = $('#myPublishCount');
+      if (pubCount) pubCount.textContent = `已发布 ${published} 篇手账`;
 
-    // 主题按钮状态
-    const currentTheme = Store.get('theme', 'light');
-    $$('.theme-opt').forEach(opt => {
-      opt.classList.toggle('active', opt.dataset.theme === currentTheme);
-    });
+      const currentTheme = Store.get('theme', 'light');
+      $$('.theme-opt').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.theme === currentTheme);
+      });
+    } catch (e) { console.error('renderSettings error:', e); }
   }
 
   function initSettings() {
@@ -497,14 +531,20 @@
 
   /* ============ 初始化 ============ */
   function init() {
-    initWelcome();
-    initNav();
-    initTheme();
-    initWrite();
-    initJournalFilter();
-    initModal();
-    initSettings();
-    renderHome();
+    const steps = [
+      { name: 'initWelcome', fn: initWelcome },
+      { name: 'initNav', fn: initNav },
+      { name: 'initTheme', fn: initTheme },
+      { name: 'initWrite', fn: initWrite },
+      { name: 'initJournalFilter', fn: initJournalFilter },
+      { name: 'initModal', fn: initModal },
+      { name: 'initSettings', fn: initSettings },
+      { name: 'renderHome', fn: renderHome },
+    ];
+    for (const step of steps) {
+      try { step.fn(); }
+      catch (e) { console.error(step.name + ' error:', e); }
+    }
   }
 
   if (document.readyState === 'loading') {
